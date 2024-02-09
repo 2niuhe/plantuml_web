@@ -45,18 +45,17 @@ async def fetch_image(*args):
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
             if response.status_code == 200:
-                print("请求成功！")
-                # 将 PNG 图片内容转换为 base64 编码
+                print("Request successful!")
                 image_base64 = base64.b64encode(response.content).decode("utf-8")
                 image_base64 = base64_prefix + image_base64
                 uml_img.set_source(image_base64)
                 return image_base64
             else:
-                print(f"请求失败，状态码为 {response.status_code}")
+                print(f"Request failed, status code: {response.status_code}")
     except httpx.RequestError as e:
-        print(f"请求错误: {e}")
+        print(f"Request error: {e}")
     except httpx.HTTPError as e:
-        print(f"HTTP 错误: {e}")
+        print(f"HTTP ERROR: {e}")
     except Exception as e:
         print(e)
     return None
