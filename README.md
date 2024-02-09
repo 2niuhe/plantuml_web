@@ -5,6 +5,7 @@ It's a nicegui demo project.
 
 Plantuml jar version: plantuml-1.2024.1.jar
 
+![demo](https://github.com/2niuhe/plantuml_web/blob/main/demo_img/demo.png)
 ## Usage:
 
 - with docker
