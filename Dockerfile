@@ -12,7 +12,8 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # 安装 Python 依赖
-RUN pip3 install --no-cache-dir nicegui plantuml
+COPY requirements.txt /app/
+RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
 # 创建工作目录
 WORKDIR /app
@@ -22,6 +23,7 @@ COPY . /app
 
 # 暴露端口（如果需要）
 EXPOSE 8080
+EXPOSE 8765
 
 # 设置启动命令
 CMD ["sh", "start.sh"]

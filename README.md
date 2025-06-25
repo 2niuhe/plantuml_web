@@ -1,29 +1,82 @@
 # plantuml_web
 Using nicegui as a PlantUML frontend, you can deploy PlantUML on an intranet.
 
-It's a nicegui demo project.
+It's a nicegui demo project with an added MCP (Model Context Protocol) server that exposes PlantUML functionality to AI assistants.
 
 Plantuml jar version: plantuml-1.2025.3.jar
 
 ![demo](https://github.com/2niuhe/plantuml_web/blob/main/demo_img/demo.png)
+
+## Features
+
+### Web Interface
+- Interactive PlantUML editor with live preview
+- Save and load diagrams
+- Responsive UI with resizable panels
+
+### MCP Server
+- Generate PlantUML diagrams in SVG or PNG format
+- Validate PlantUML code with detailed error messages
+- Access diagram templates for different UML diagram types
+- Create diagrams from templates with customizations
+- Convert text descriptions to PlantUML diagrams
+
 ## Usage:
 
-- with docker
+### With Docker
 
 ```shell
-docker build -t nicegui_plantuml .
-docker run -d -p 8080:8080 nicegui_plantuml
+docker build -t plantuml_web_mcp .
+docker run -d -p 8080:8080 -p 8765:8765 plantuml_web_mcp
 ```
 
-Then you can visit http://127.0.0.1:8080
+Then you can access:
+- Web interface: http://127.0.0.1:8080
+- MCP server: http://127.0.0.1:8765/sse
 
-- without docker
+### Without Docker
 
 ```shell
 pip install -r requirements.txt
 sh start.sh
 ```
 
+The start script will launch:
+1. PlantUML server on port 8000
+2. Web interface on port 8080
+3. MCP server on port 8765
+
+## Connecting to the MCP Server
+
+You can connect to the MCP server using any MCP client, such as Claude Desktop:
+
+1. Open Claude Desktop
+2. Go to Settings > MCP Servers
+3. Add a new server with the URL: `http://localhost:8765/sse`
+4. Restart Claude Desktop
+
+## Testing the MCP Server
+
+A test client is provided to verify the MCP server functionality:
+
+```shell
+python test_plantuml_mcp.py http://localhost:8765/sse
+```
+
+This will test all available tools and resources and save generated diagrams to the `test_output` directory.
+
+## Available MCP Tools
+
+- `generate_diagram_base64`: Generate a diagram from PlantUML code
+- `validate_plantuml`: Validate PlantUML code and return validation result
+- `create_diagram_from_template`: Create a diagram from a template with customizations
+- `convert_text_to_diagram`: Convert a text description to a PlantUML diagram
+
+## Available MCP Resources
+
+- `plantuml://info`: Information about the PlantUML server
+- `plantuml://examples`: Examples of PlantUML diagrams
+- `plantuml://templates/{diagram_type}`: Templates for specific diagram types
 
 ### ref
 
