@@ -91,13 +91,26 @@ async def generate_diagram_base64(
     """
     Generate a diagram from PlantUML code and return it as a base64 encoded string.
     
+    Use this tool when you need to create a visual representation of PlantUML code.
+    The diagram will be returned as a base64-encoded string that can be directly 
+    used in HTML image tags or other web contexts.
+    
     Args:
-        uml_code: The PlantUML code to generate a diagram from
-        format_type: The format of the diagram (svg or png)
-        timeout: Timeout in seconds for the request
-        
+        uml_code (str): The PlantUML code to generate a diagram from.
+                      Example: "@startuml\nAlice -> Bob: Hello\n@enduml"
+        format_type (str, optional): The output format of the diagram. 
+                                  'svg' for vector graphics (recommended for web),
+                                  'png' for bitmap images.
+                                  Defaults to 'svg'.
+        timeout (int, optional): Maximum time in seconds to wait for the diagram 
+                               generation. Defaults to 30 seconds.
+    
     Returns:
-        A base64 encoded string of the diagram that can be displayed in HTML with an img tag
+        str: A base64-encoded string of the diagram, prefixed with the appropriate 
+             data URI scheme (e.g., 'data:image/svg+xml;base64,...')
+    
+    Raises:
+        Exception: If diagram generation fails or times out
     """
     diagram_data = await generate_diagram(uml_code, format_type, timeout)
     base64_prefix = 'data:image/svg+xml;base64,' if format_type == 'svg' else 'data:image/png;base64,'
@@ -109,11 +122,23 @@ async def validate_plantuml(uml_code: str) -> Dict[str, Union[bool, str]]:
     """
     Validate PlantUML code by attempting to generate a diagram.
     
+    Use this tool to check if PlantUML code is syntactically correct before 
+    generating a full diagram. This is useful for catching syntax errors early.
+    
     Args:
-        uml_code: The PlantUML code to validate
-        
+        uml_code (str): The PlantUML code to validate.
+                      Example: "@startuml\nAlice -> Bob: Hello\n@enduml"
+    
     Returns:
-        A dictionary with validation result and error message if any
+        Dict[str, Union[bool, str]]: A dictionary containing:
+            - valid (bool): True if the code is valid, False otherwise
+            - error (str): Error message if validation fails, None if successful
+    
+    Example return value for valid code:
+        {"valid": True, "error": None}
+    
+    Example return value for invalid code:
+        {"valid": False, "error": "Syntax error at line 2"}
     """
     try:
         await generate_diagram(uml_code)
