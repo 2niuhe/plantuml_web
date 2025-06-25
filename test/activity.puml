@@ -1,0 +1,34 @@
+@startuml
+' Activity Diagram Example
+
+start
+:用户登录系统;
+
+if (验证成功?) then (是)
+  :显示主页面;
+  
+  repeat
+    :选择操作;
+    
+    if (操作类型?) then (查询)
+      :执行查询;
+    else if (新增) then (新增)
+      :输入数据;
+      :保存数据;
+    else (删除)
+      :确认删除;
+      :删除数据;
+    endif
+    
+    :是否继续?;
+  repeat while (是) 
+  
+  :退出系统;
+else (否)
+  :显示错误信息;
+  stop
+endif
+
+stop
+
+@enduml

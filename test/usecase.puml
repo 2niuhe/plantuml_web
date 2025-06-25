@@ -1,0 +1,29 @@
+@startuml
+' Use Case Diagram Example
+
+left to right direction
+actor "注册用户" as User
+actor "管理员" as Admin
+
+rectangle "在线购物系统" {
+  usecase "浏览商品" as UC1
+  usecase "搜索商品" as UC2
+  usecase "加入购物车" as UC3
+  usecase "下订单" as UC4
+  usecase "支付" as UC5
+  usecase "管理商品" as UC6
+  usecase "查看报表" as UC7
+  
+  User --> UC1
+  User --> UC2
+  User --> UC3
+  User --> UC4
+  User --> UC5
+  Admin --> UC6
+  Admin --> UC7
+  
+  UC1 ..> UC2 : <<include>>
+  UC4 ..> UC5 : <<include>>
+}
+
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+' Class Diagram Example
+
+class User {
+  +id: int
+  +username: string
+  +password: string
+  +login()
+  +logout()
+}
+
+class Post {
+  +id: int
+  +title: string
+  +content: text
+  +created_at: datetime
+  +publish()
+}
+
+class Comment {
+  +id: int
+  +content: text
+  +created_at: datetime
+  +add_comment()
+}
+
+User "1" -- "*" Post : creates >
+User "1" -- "*" Comment : writes >
+Post "1" -- "*" Comment : has >
+
+@enduml

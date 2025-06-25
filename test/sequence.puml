@@ -1,0 +1,22 @@
+@startuml
+' Sequence Diagram Example
+
+actor User
+participant "Web Browser" as Browser
+participant "Web Server" as Server
+participant "Database" as DB
+
+User -> Browser: 访问网站
+activate Browser
+Browser -> Server: HTTP 请求 (GET /home)
+activate Server
+Server -> DB: 查询数据
+activate DB
+DB --> Server: 返回数据
+deactivate DB
+Server --> Browser: 返回HTML页面
+deactivate Server
+Browser --> User: 显示页面
+deactivate Browser
+
+@enduml

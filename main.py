@@ -61,22 +61,113 @@ async def fetch_image(*args):
     return None
 
 toggle1 = ui.toggle(['SVG', 'PNG'], value='SVG', on_change=fetch_image)
-image_container = ui.row().classes("w-full flex")
+# Add CSS for the resizable layout
+ui.add_head_html("""
+<style>
+    .resizable-container {
+        display: flex;
+        width: 100%;
+        height: 90vh; /* 90% of viewport height */
+        overflow: hidden;
+    }
+    .resizable-panel {
+        overflow: auto;
+        min-width: 10%;
+        box-sizing: border-box;
+    }
+    .left-panel {
+        width: 40%;
+    }
+    .right-panel {
+        width: 60%;
+    }
+    .resizable-handle {
+        width: 8px;
+        background-color: #ddd;
+        cursor: col-resize;
+        transition: background-color 0.2s;
+    }
+    .resizable-handle:hover {
+        background-color: #aaa;
+    }
+    .full-height-textarea .q-field__control {
+        height: 100% !important;
+    }
+    .full-height-textarea .q-field__native {
+        height: 100% !important;
+        min-height: 100% !important;
+    }
+</style>
+""")
+
+# Create a container with custom classes for resizable layout
+image_container = ui.element('div').classes("resizable-container")
 
 # PLANTUML_SERVER = "http://www.plantuml.com/plantuml/"
 PLANTUML_SERVER = "http://127.0.0.1:8000/plantuml/"
 
 with image_container:
-    uml_code = ui.textarea(
-        label='PlantUML Code',
-        placeholder='Edit plantuml here',
-        value='Alice -> Bob: hello',
-        on_change=fetch_image).style(
-            'flex:1; width: 40%;')
+    # Left panel with textarea
+    left_panel = ui.element('div').classes('resizable-panel left-panel')
+    with left_panel:
+        uml_code = ui.textarea(
+            label='PlantUML Code',
+            placeholder='Edit plantuml here',
+            value='Alice -> Bob: hello',
+            on_change=fetch_image
+        ).classes('full-height-textarea').style('width: 100%; height: 100%')
+    
+    # Resizable handle
+    handle = ui.element('div').classes('resizable-handle')
+    
+    # Right panel with image
+    right_panel = ui.element('div').classes('resizable-panel right-panel')
+    with right_panel:
+        uml_img = ui.image('./hello.svg').style('width: 100%; height: auto;')
+    
+    # Add JavaScript for resizable functionality
+    ui.add_body_html("""
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.querySelector('.resizable-container');
+        const leftPanel = container.querySelector('.left-panel');
+        const rightPanel = container.querySelector('.right-panel');
+        const handle = container.querySelector('.resizable-handle');
+        let isResizing = false;
+        let lastX;
+        
+        handle.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            lastX = e.clientX;
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            e.preventDefault();
+        });
+        
+        function handleMouseMove(e) {
+            if (!isResizing) return;
+            const dx = e.clientX - lastX;
+            const leftPanelWidth = leftPanel.getBoundingClientRect().width;
+            const containerWidth = container.getBoundingClientRect().width;
+            const newLeftWidth = (leftPanelWidth + dx) / containerWidth * 100;
+            
+            // Limit the minimum and maximum width
+            if (newLeftWidth > 10 && newLeftWidth < 90) {
+                leftPanel.style.width = `${newLeftWidth}%`;
+                // Explicitly set the right panel width to fill the remaining space
+                rightPanel.style.width = `${100 - newLeftWidth}%`;
+                lastX = e.clientX;
+            }
+        }
+        
+        function handleMouseUp() {
+            isResizing = false;
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        }
+    });
+    </script>
+    """)
 
-    uml_img = ui.image(
-        './hello.svg',
-        ).style('min-height: 100%; height: auto; flex: 1;')
-
-ui.run(storage_secret='private key', title='PlantUML', favicon='🤖', reload=False, port=8080)
-#ui.run(title='PlantUML', favicon='🤖', reload=False, port=native.find_open_port())
+ui.run(storage_secret='private key', title='PlantUML', favicon='🚀', reload=False, port=8080)
+#ui.run(title='PlantUML', favicon='🚀', reload=False, port=native.find_open_port())

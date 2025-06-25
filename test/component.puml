@@ -1,0 +1,26 @@
+@startuml
+' Component Diagram Example
+
+package "Web Application" {
+  [Web Browser] as Browser
+  [Web Server] as Server
+  [Database] as DB
+}
+
+package "External Services" {
+  [Payment Gateway] as Payment
+  [Email Service] as Email
+}
+
+Browser --> Server : HTTP/HTTPS
+Server --> DB : SQL
+Server --> Payment : API
+Server --> Email : SMTP
+
+note right of Server
+  处理业务逻辑
+  管理会话
+  路由请求
+end note
+
+@enduml

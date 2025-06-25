@@ -3,7 +3,7 @@ Using nicegui as a PlantUML frontend, you can deploy PlantUML on an intranet.
 
 It's a nicegui demo project.
 
-Plantuml jar version: plantuml-1.2024.1.jar
+Plantuml jar version: plantuml-1.2025.3.jar
 
 ![demo](https://github.com/2niuhe/plantuml_web/blob/main/demo_img/demo.png)
 ## Usage:
