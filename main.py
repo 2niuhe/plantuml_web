@@ -48,6 +48,9 @@ async def index():
 
     async def fetch_image(*args):
         try:
+            # Save current code to local storage using JavaScript
+            ui.run_javascript(f"localStorage.setItem('plantuml_code', {repr(uml_code.value)})")
+                
             url, base64_prefix = get_url()
             async with httpx.AsyncClient() as client:
                 response = await client.get(url)
@@ -116,12 +119,35 @@ async def index():
         # Left panel with textarea
         left_panel = ui.element('div').classes('resizable-panel left-panel')
         with left_panel:
+            # Default code to use if no saved code is found
+            default_code = 'Alice -> Bob: hello'
+            
+            # Create the textarea with default code initially
             uml_code = ui.textarea(
                 label='PlantUML Code',
                 placeholder='Edit plantuml here',
-                value='Alice -> Bob: hello',
+                value=default_code,
                 on_change=fetch_image
             ).classes('full-height-textarea').style('width: 100%; height: 100%')
+            
+            # Try to load saved code from localStorage using JavaScript
+            ui.run_javascript("""
+            try {
+                const savedCode = localStorage.getItem('plantuml_code');
+                if (savedCode) {
+                    // Update the textarea with the saved code
+                    const textareaElement = document.querySelector('.full-height-textarea textarea');
+                    if (textareaElement) {
+                        textareaElement.value = savedCode;
+                        // Trigger change event to update the diagram
+                        const event = new Event('input', { bubbles: true });
+                        textareaElement.dispatchEvent(event);
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading saved code:', e);
+            }
+            """)
         
         # Resizable handle
         handle = ui.element('div').classes('resizable-handle')
