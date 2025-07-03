@@ -106,34 +106,57 @@ async def generate_diagram(uml_code: str, format_type: str = "svg", timeout: int
 # DEFINE TOOLS
 
 @mcp.tool()
-async def generate_diagram_base64(
+async def generate_plantuml_image(
     uml_code: str, 
     format_type: Literal["svg", "png"] = "png",
     timeout: int = 30
 ) -> ImageContent:
     """
-    Generate a diagram from PlantUML code and return it as an ImageContent object.
+    Generate high-quality UML diagrams from PlantUML code and return as ImageContent.
     
-    Use this tool when you need to create a visual representation of PlantUML code.
-    The diagram will be returned as an ImageContent object that can be directly 
-    used in HTML image tags or other web contexts.
+    This tool converts PlantUML text descriptions into visual diagrams. It supports various
+    UML diagram types including sequence diagrams, class diagrams, use case diagrams,
+    activity diagrams, component diagrams, and more. The generated diagrams are optimized
+    for clarity and can be used directly in documentation, presentations, or web content.
+    
+    WHEN TO USE THIS TOOL:
+    - Create visual representations of system architecture or design
+    - Generate sequence diagrams to show interaction flows
+    - Draw class diagrams to illustrate object relationships
+    - Create flowcharts and activity diagrams for process documentation
+    - Visualize database schemas or component relationships
+    - Convert textual descriptions into professional UML diagrams
+    
+    SUPPORTED DIAGRAM TYPES:
+    - Sequence diagrams (@startuml -> @enduml)
+    - Class diagrams (class definitions and relationships)
+    - Use case diagrams (actors and use cases)
+    - Activity diagrams (workflows and processes)
+    - Component diagrams (system components)
+    - State diagrams (state machines)
+    - Object diagrams, deployment diagrams, and more
     
     Args:
-        uml_code (str): The PlantUML code to generate a diagram from.
-                      Example: "@startuml\nAlice -> Bob: Hello\n@enduml"
-        format_type (str, optional): The output format of the diagram. 
-                                  'png' for bitmap images (recommended)
-                                  'svg' for vector graphics,
-                                  Defaults to 'png'.
-        timeout (int, optional): Maximum time in seconds to wait for the diagram 
-                               generation. Defaults to 30 seconds.
+        uml_code (str): The PlantUML code describing the diagram. Can include or omit
+                       @startuml/@enduml tags (they will be added automatically if missing).
+                       
+                       EXAMPLES:
+                       - Simple sequence: "Alice -> Bob: Hello\\nBob -> Alice: Hi!"
+                       - Class diagram: "class User {\\n  +name: string\\n  +email: string\\n}"
+                       - Use case: "actor User\\nUser -> (Login)\\nUser -> (Register)"
+                       - Activity: "start\\n:Process data;\\nif (valid?) then (yes)\\n  :Save;\\nelse (no)\\n  :Error;\\nendif\\nstop"
+                       
+        format_type (str, optional): Output format for the diagram.
+                                   - 'png': High-quality bitmap image (recommended for most uses)
+                                   - 'svg': Scalable vector graphics (best for web integration and zooming)
+                                   Defaults to 'png' for optimal quality.
+                                   
+        timeout (int, optional): Defaults to 30 seconds.
     
     Returns:
-        ImageContent: An ImageContent object containing the diagram
-        
-    Note:
-        PNG images are automatically generated with high quality settings (300 DPI, 2x scale)
-        for optimal clarity and sharpness.
+        ImageContent: An MCP ImageContent object containing the generated diagram.
+                     The returned object has base64-encoded image data and proper MIME type.
+                     Can be directly embedded in HTML, markdown, or other content formats.
     
     Raises:
         Exception: If diagram generation fails or times out
@@ -148,7 +171,7 @@ async def generate_diagram_base64(
     )
 
 @mcp.tool()
-async def validate_plantuml(uml_code: str) -> Dict[str, Union[bool, str, None]]:
+async def validate_plantuml_syntax(uml_code: str) -> Dict[str, Union[bool, str, None]]:
     """
     Validate PlantUML code by attempting to generate a diagram.
     
