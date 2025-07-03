@@ -7,6 +7,7 @@ It allows AI assistants and other MCP clients to generate UML diagrams from text
 """
 
 from mcp.server.fastmcp import FastMCP, Context
+from mcp.types import ImageContent
 import uvicorn
 import os
 import base64
@@ -49,13 +50,35 @@ def plantuml_decode(plantuml_url):
     return dec.decompress(header + data).decode("utf-8")
 
 async def generate_diagram(uml_code: str, format_type: str = "svg", timeout: int = 30):
-    """Generate a diagram from PlantUML code"""
+    """Generate a diagram from PlantUML code with optimized quality for PNG"""
     try:
         # Add @startuml and @enduml if not present
         if "@startuml" not in uml_code:
             uml_code = "@startuml\n" + uml_code
         if "@enduml" not in uml_code:
             uml_code = uml_code + "\n@enduml"
+            
+        # Apply high-quality settings for PNG format
+        if format_type.lower() == 'png':
+            # Insert high-quality directives after @startuml
+            lines = uml_code.split('\n')
+            start_idx = 0
+            for i, line in enumerate(lines):
+                if line.strip().startswith('@startuml'):
+                    start_idx = i + 1
+                    break
+            
+            # Insert quality improvement directives
+            quality_directives = [
+                "skinparam dpi 400",
+                "scale 2"
+            ]
+            
+            for directive in quality_directives:
+                lines.insert(start_idx, directive)
+                start_idx += 1
+            
+            uml_code = '\n'.join(lines)
             
         # Encode the PlantUML code
         uml_encoded = plantuml_encode(uml_code)
@@ -85,40 +108,47 @@ async def generate_diagram(uml_code: str, format_type: str = "svg", timeout: int
 @mcp.tool()
 async def generate_diagram_base64(
     uml_code: str, 
-    format_type: Literal["svg", "png"] = "svg",
+    format_type: Literal["svg", "png"] = "png",
     timeout: int = 30
-) -> str:
+) -> ImageContent:
     """
-    Generate a diagram from PlantUML code and return it as a base64 encoded string.
+    Generate a diagram from PlantUML code and return it as an ImageContent object.
     
     Use this tool when you need to create a visual representation of PlantUML code.
-    The diagram will be returned as a base64-encoded string that can be directly 
+    The diagram will be returned as an ImageContent object that can be directly 
     used in HTML image tags or other web contexts.
     
     Args:
         uml_code (str): The PlantUML code to generate a diagram from.
                       Example: "@startuml\nAlice -> Bob: Hello\n@enduml"
         format_type (str, optional): The output format of the diagram. 
-                                  'svg' for vector graphics (recommended for web),
-                                  'png' for bitmap images.
-                                  Defaults to 'svg'.
+                                  'png' for bitmap images (recommended)
+                                  'svg' for vector graphics,
+                                  Defaults to 'png'.
         timeout (int, optional): Maximum time in seconds to wait for the diagram 
                                generation. Defaults to 30 seconds.
     
     Returns:
-        str: A base64-encoded string of the diagram, prefixed with the appropriate 
-             data URI scheme (e.g., 'data:image/svg+xml;base64,...')
+        ImageContent: An ImageContent object containing the diagram
+        
+    Note:
+        PNG images are automatically generated with high quality settings (300 DPI, 2x scale)
+        for optimal clarity and sharpness.
     
     Raises:
         Exception: If diagram generation fails or times out
     """
     diagram_data = await generate_diagram(uml_code, format_type, timeout)
-    base64_prefix = 'data:image/svg+xml;base64,' if format_type == 'svg' else 'data:image/png;base64,'
     image_base64 = base64.b64encode(diagram_data).decode("utf-8")
-    return base64_prefix + image_base64
+    mime_type = "image/svg+xml" if format_type == "svg" else "image/png"
+    return ImageContent(
+        type="image",
+        data=image_base64,
+        mimeType=mime_type
+    )
 
 @mcp.tool()
-async def validate_plantuml(uml_code: str) -> Dict[str, Union[bool, str]]:
+async def validate_plantuml(uml_code: str) -> Dict[str, Union[bool, str, None]]:
     """
     Validate PlantUML code by attempting to generate a diagram.
     
@@ -130,7 +160,7 @@ async def validate_plantuml(uml_code: str) -> Dict[str, Union[bool, str]]:
                       Example: "@startuml\nAlice -> Bob: Hello\n@enduml"
     
     Returns:
-        Dict[str, Union[bool, str]]: A dictionary containing:
+        Dict[str, Union[bool, str, None]]: A dictionary containing:
             - valid (bool): True if the code is valid, False otherwise
             - error (str): Error message if validation fails, None if successful
     
@@ -141,7 +171,7 @@ async def validate_plantuml(uml_code: str) -> Dict[str, Union[bool, str]]:
         {"valid": False, "error": "Syntax error at line 2"}
     """
     try:
-        await generate_diagram(uml_code)
+        await generate_diagram(uml_code, "svg", 30)
         return {"valid": True, "error": None}
     except Exception as e:
         return {"valid": False, "error": str(e)}

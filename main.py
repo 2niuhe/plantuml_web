@@ -37,8 +37,37 @@ def plantuml_decode(plantuml_url):
 @ui.page('/')
 async def index():
 
-    def get_url() -> str:
+    def get_url() -> tuple[str, str]:
         uml_str = uml_code.value
+        
+        # Apply high-quality settings for PNG format
+        if toggle1.value == 'PNG':
+            # Add @startuml and @enduml if not present
+            if "@startuml" not in uml_str:
+                uml_str = "@startuml\n" + uml_str
+            if "@enduml" not in uml_str:
+                uml_str = uml_str + "\n@enduml"
+                
+            # Insert high-quality directives after @startuml
+            lines = uml_str.split('\n')
+            start_idx = 0
+            for i, line in enumerate(lines):
+                if line.strip().startswith('@startuml'):
+                    start_idx = i + 1
+                    break
+            
+            # Insert quality improvement directives
+            quality_directives = [
+                "skinparam dpi 400",
+                "scale 2"
+            ]
+            
+            for directive in quality_directives:
+                lines.insert(start_idx, directive)
+                start_idx += 1
+            
+            uml_str = '\n'.join(lines)
+        
         img_src = PLANTUML_SERVER
         img_src += 'svg/' if toggle1.value == 'SVG' else 'png/'
         base64_prefix = 'data:image/svg+xml;base64,' if toggle1.value == 'SVG' else 'data:image/png;base64,'
@@ -72,6 +101,7 @@ async def index():
 
 
     toggle1 = ui.toggle(['SVG', 'PNG'], value='SVG', on_change=fetch_image)
+    ui.label('Format: SVG (vector) | PNG (auto high-quality: 300 DPI + 2x scale)').classes('text-caption text-grey-6')
     # Add CSS for the resizable layout
     ui.add_head_html("""
     <style>
