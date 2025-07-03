@@ -5,6 +5,7 @@ import zlib
 import string
 
 from multiprocessing import freeze_support
+
 freeze_support()
 
 # https://plantuml.com/text-encoding
@@ -15,71 +16,83 @@ PLANTUML_SERVER = "http://127.0.0.1:8000/plantuml/"
 
 maketrans = bytes.maketrans
 
-plantuml_alphabet = string.digits + string.ascii_uppercase + string.ascii_lowercase + '-_'
-base64_alphabet   = string.ascii_uppercase + string.ascii_lowercase + string.digits + '+/'
-b64_to_plantuml = maketrans(base64_alphabet.encode('utf-8'), plantuml_alphabet.encode('utf-8'))
-plantuml_to_b64 = maketrans(plantuml_alphabet.encode('utf-8'), base64_alphabet.encode('utf-8'))
+plantuml_alphabet = (
+    string.digits + string.ascii_uppercase + string.ascii_lowercase + "-_"
+)
+base64_alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits + "+/"
+b64_to_plantuml = maketrans(
+    base64_alphabet.encode("utf-8"), plantuml_alphabet.encode("utf-8")
+)
+plantuml_to_b64 = maketrans(
+    plantuml_alphabet.encode("utf-8"), base64_alphabet.encode("utf-8")
+)
+
 
 def plantuml_encode(plantuml_text):
     """zlib compress the plantuml text and encode it for the plantuml server"""
-    zlibbed_str = zlib.compress(plantuml_text.encode('utf-8'))
+    zlibbed_str = zlib.compress(plantuml_text.encode("utf-8"))
     compressed_string = zlibbed_str[2:-4]
-    return base64.b64encode(compressed_string).translate(b64_to_plantuml).decode('utf-8')
+    return (
+        base64.b64encode(compressed_string).translate(b64_to_plantuml).decode("utf-8")
+    )
+
 
 def plantuml_decode(plantuml_url):
     """decode plantuml encoded url back to plantuml text"""
     data = base64.b64decode(plantuml_url.translate(plantuml_to_b64).encode("utf-8"))
-    dec = zlib.decompressobj() # without check the crc.
-    header = b'x\x9c'
+    dec = zlib.decompressobj()  # without check the crc.
+    header = b"x\x9c"
     return dec.decompress(header + data).decode("utf-8")
 
 
-@ui.page('/')
+@ui.page("/")
 async def index():
-
     def get_url() -> tuple[str, str]:
         uml_str = uml_code.value
-        
+
         # Apply high-quality settings for PNG format
-        if toggle1.value == 'PNG':
+        if toggle1.value == "PNG":
             # Add @startuml and @enduml if not present
             if "@startuml" not in uml_str:
                 uml_str = "@startuml\n" + uml_str
             if "@enduml" not in uml_str:
                 uml_str = uml_str + "\n@enduml"
-                
+
             # Insert high-quality directives after @startuml
-            lines = uml_str.split('\n')
+            lines = uml_str.split("\n")
             start_idx = 0
             for i, line in enumerate(lines):
-                if line.strip().startswith('@startuml'):
+                if line.strip().startswith("@startuml"):
                     start_idx = i + 1
                     break
-            
+
             # Insert quality improvement directives
-            quality_directives = [
-                "skinparam dpi 400",
-                "scale 2"
-            ]
-            
+            quality_directives = ["skinparam dpi 400", "scale 2"]
+
             for directive in quality_directives:
                 lines.insert(start_idx, directive)
                 start_idx += 1
-            
-            uml_str = '\n'.join(lines)
-        
+
+            uml_str = "\n".join(lines)
+
         img_src = PLANTUML_SERVER
-        img_src += 'svg/' if toggle1.value == 'SVG' else 'png/'
-        base64_prefix = 'data:image/svg+xml;base64,' if toggle1.value == 'SVG' else 'data:image/png;base64,'
-        
+        img_src += "svg/" if toggle1.value == "SVG" else "png/"
+        base64_prefix = (
+            "data:image/svg+xml;base64,"
+            if toggle1.value == "SVG"
+            else "data:image/png;base64,"
+        )
+
         uml_encoded = plantuml_encode(uml_str)
         return img_src + uml_encoded, base64_prefix
 
     async def fetch_image(*args):
         try:
             # Save current code to local storage using JavaScript
-            ui.run_javascript(f"localStorage.setItem('plantuml_code', {repr(uml_code.value)})")
-                
+            ui.run_javascript(
+                f"localStorage.setItem('plantuml_code', {repr(uml_code.value)})"
+            )
+
             url, base64_prefix = get_url()
             async with httpx.AsyncClient() as client:
                 response = await client.get(url)
@@ -99,9 +112,7 @@ async def index():
             print(e)
         return None
 
-
-    toggle1 = ui.toggle(['SVG', 'PNG'], value='SVG', on_change=fetch_image)
-    ui.label('Format: SVG (vector) | PNG (auto high-quality: 300 DPI + 2x scale)').classes('text-caption text-grey-6')
+    toggle1 = ui.toggle(["SVG", "PNG"], value="SVG", on_change=fetch_image)
     # Add CSS for the resizable layout
     ui.add_head_html("""
     <style>
@@ -142,24 +153,27 @@ async def index():
     """)
 
     # Create a container with custom classes for resizable layout
-    image_container = ui.element('div').classes("resizable-container")
-
+    image_container = ui.element("div").classes("resizable-container")
 
     with image_container:
         # Left panel with textarea
-        left_panel = ui.element('div').classes('resizable-panel left-panel')
+        left_panel = ui.element("div").classes("resizable-panel left-panel")
         with left_panel:
             # Default code to use if no saved code is found
-            default_code = 'Alice -> Bob: hello'
-            
+            default_code = "Alice -> Bob: hello"
+
             # Create the textarea with default code initially
-            uml_code = ui.textarea(
-                label='PlantUML Code',
-                placeholder='Edit plantuml here',
-                value=default_code,
-                on_change=fetch_image
-            ).classes('full-height-textarea').style('width: 100%; height: 100%')
-            
+            uml_code = (
+                ui.textarea(
+                    label="PlantUML Code",
+                    placeholder="Edit plantuml here",
+                    value=default_code,
+                    on_change=fetch_image,
+                )
+                .classes("full-height-textarea")
+                .style("width: 100%; height: 100%")
+            )
+
             # Try to load saved code from localStorage using JavaScript
             ui.run_javascript("""
             try {
@@ -178,15 +192,15 @@ async def index():
                 console.error('Error loading saved code:', e);
             }
             """)
-        
+
         # Resizable handle
-        handle = ui.element('div').classes('resizable-handle')
-        
+        ui.element("div").classes("resizable-handle")
+
         # Right panel with image
-        right_panel = ui.element('div').classes('resizable-panel right-panel')
+        right_panel = ui.element("div").classes("resizable-panel right-panel")
         with right_panel:
-            uml_img = ui.image('./hello.svg').style('width: 100%; height: auto;')
-        
+            uml_img = ui.image("./hello.svg").style("width: 100%; height: auto;")
+
         # Add JavaScript for resizable functionality
         ui.add_body_html("""
         <script>
@@ -231,5 +245,12 @@ async def index():
         </script>
         """)
 
-ui.run(storage_secret='private key', title='PlantUML', favicon='🚀', reload=False, port=8080)
-#ui.run(title='PlantUML', favicon='🚀', reload=False, port=native.find_open_port())
+
+ui.run(
+    storage_secret="private key",
+    title="PlantUML",
+    favicon="🚀",
+    reload=False,
+    port=8080,
+)
+# ui.run(title='PlantUML', favicon='🚀', reload=False, port=native.find_open_port())
