@@ -77,7 +77,7 @@ async def generate_diagram(uml_code: str, format_type: str = "svg", timeout: int
                     break
 
             # Insert quality improvement directives
-            quality_directives = ["skinparam dpi 400", "scale 2"]
+            quality_directives = ["skinparam dpi 300",]
 
             for directive in quality_directives:
                 lines.insert(start_idx, directive)

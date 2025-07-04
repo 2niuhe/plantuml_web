@@ -27,7 +27,11 @@ Plantuml jar version: plantuml-1.2025.3.jar
 
 ```shell
 docker build -t plantuml_web_mcp .
-docker run -d -p 8080:8080 -p 8765:8765 plantuml_web_mcp
+
+# or pull from dockerhub
+# docker pull  2niuhe/plantuml_web_mcp:latest
+
+docker run -d -p 8080:8080 -p 8765:8765 plantuml_web_mcp:latest
 ```
 
 Then you can access:

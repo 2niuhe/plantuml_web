@@ -2,7 +2,7 @@
 
 # Start the PlantUML server
 echo "Starting PlantUML server..."
-java -jar plantuml.jar -picoweb:8000 &
+java -DPLANTUML_LIMIT_SIZE=8192 -jar plantuml.jar -picoweb:8000 &
 PLANTUML_SERVER_PID=$!
 
 # Wait for the PlantUML server to start
