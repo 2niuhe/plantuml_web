@@ -17,9 +17,6 @@ Plantuml jar version: plantuml-1.2025.3.jar
 ### MCP Server
 - Generate PlantUML diagrams in SVG or PNG format
 - Validate PlantUML code with detailed error messages
-- Access diagram templates for different UML diagram types
-- Create diagrams from templates with customizations
-- Convert text descriptions to PlantUML diagrams
 
 ## Usage:
 
@@ -67,20 +64,13 @@ A test client is provided to verify the MCP server functionality:
 python test_plantuml_mcp.py http://localhost:8765/sse
 ```
 
-This will test all available tools and resources and save generated diagrams to the `test_output` directory.
+
 
 ## Available MCP Tools
 
-- `generate_diagram_base64`: Generate a diagram from PlantUML code
-- `validate_plantuml`: Validate PlantUML code and return validation result
-- `create_diagram_from_template`: Create a diagram from a template with customizations
-- `convert_text_to_diagram`: Convert a text description to a PlantUML diagram
+- `generate_plantuml_image`: Generate a diagram image from PlantUML code
+- `validate_plantuml_syntax`: Validate PlantUML code and return validation result
 
-## Available MCP Resources
-
-- `plantuml://info`: Information about the PlantUML server
-- `plantuml://examples`: Examples of PlantUML diagrams
-- `plantuml://templates/{diagram_type}`: Templates for specific diagram types
 
 ### ref
 
